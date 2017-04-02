@@ -24,7 +24,7 @@ class MySqlDB(object):
             else:
                 pass;
 
-    def updataSearchInfo(self, data):
+    def updateSearchInfo(self, data):
         try:
             sql = u"update searchinfo  set runningtime = '%s' where keyword = '%s' and starttime = '%s' and stoptime = '%s'" %(data["runningTime"].strftime("%Y-%m-%d %H:%M:%S"), data["keyWord"], data["startTime"].strftime("%Y-%m-%d %H:%M:%S"), data["stopTime"].strftime("%Y-%m-%d %H:%M:%S"));
             
@@ -35,7 +35,7 @@ class MySqlDB(object):
             self.addErrorInfo(e);
             raise;
 
-    def addBaiduSerach(self, date):
+    def addBaiduSerach(self, data):
         try:
             sql = u"insert into baidusearch values('%s', '%s', 0)" %(data["keyWord"], data["url"]);
             self.cursor.execute(sql.encode("utf-8"));

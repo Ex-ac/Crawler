@@ -9,6 +9,7 @@ from math import ceil;
 import codecs;
 import requests;
 import codecs;
+import math;
 
 
 from MySQL import *;
@@ -49,9 +50,10 @@ class BaiduSpider(object):
         numPages = BaiduSpider.getPages(BaiduSpider.getData(searchURL, headers));
         p = 1;
         print(str(startTime));
+        time.sleep(2);
         while pn < numPages:
-            time.sleep(5);
-
+            
+            print("开始下载第%d页，共计%d页" % (p, math.ceil(numPages / 20)));
             html = BaiduSpider.getData(searchURL, headers);
             pagesResult = BaiduSpider.getBox(html);
 
@@ -64,6 +66,7 @@ class BaiduSpider(object):
             pn += 20;
             p += 1;
             searchURL += "&pn=" + str(pn);
+            time.sleep(2);
             
         return startTime + step;
 
@@ -71,14 +74,22 @@ class BaiduSpider(object):
         searchInfo = {};
         searchInfo["keyWord"] = self.keyWord;
         searchInfo["startTime"] = self.startTime;
-        searchInfo["stopTime"]
         if self.stopTime == None:
+            self.stopTime = datetime.datetime(year = 1990, month = 1, day = 1, hour = 0);
+        searchInfo["stopTime"] = self.stopTime;
+        searchInfo["runningTime"] = self.startTime;
+        self.traget.addSerachInfo(searchInfo);
+        if self.stopTime == datetime.datetime(year = 1990, month = 1, day = 1, hour = 0):
             while self.runningTime < datetime.datetime.now():
-                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.BaiduSpiderSearchURL, self.runningTime, self.timeStep, self.headers, self.traget);
+                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.keyWord, self.runningTime, self.timeStep, self.headers, self.traget);
+                searchInfo["runningTime"] = self.runningTime;
+                self.traget.updateSearchInfo(searchInfo);
 
         else:
             while self.runningTime < self.stopTime:
-                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.BaiduSpiderSearchURL, self.runningTime, self.timeStep, self.headers, self.traget);
+                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.keyWord, self.runningTime, self.timeStep, self.headers, self.traget);
+                searchInfo["runningTime"] = self.runningTime;
+                self.traget.updateSearchInfo(searchInfo);
 
 
 
@@ -195,17 +206,17 @@ if __name__ == "__main__":
     'Accept-Encoding': 'gzip, deflate'
     };
 
-    db = MySqlDB();
+    db = MySqlDB(db = "test");
     
 #    f = codecs.open("data.html", "w", "utf-8");
 
     startTime = datetime.datetime(2016, 2, 1);
  
-    timeStep = datetime.timedelta(seconds = 3600*24*60);
+    timeStep = datetime.timedelta(seconds = 3600);
 
 
     
-    keyWord = u"google";
+    keyWord = u"魏则西";
 
     search = BaiduSpider(keyWord, headers, startTime, timeStep, traget = db);
     search.run();
