@@ -212,14 +212,16 @@ if __name__ == "__main__":
 
     startTime = datetime.datetime(2016, 2, 1);
  
-    timeStep = datetime.timedelta(seconds = 3600);
+    timeStep = datetime.timedelta(seconds = 3600 * 24);
 
 
     
     keyWord = u"魏则西";
-
-    search = BaiduSpider(keyWord, headers, startTime, timeStep, traget = db);
-    search.run();
+    try:
+        search = BaiduSpider(keyWord, headers, startTime, timeStep, traget = db);
+        search.run();
+    except Exception as e:
+        db.addErrorInfo(e);
 
     
 
