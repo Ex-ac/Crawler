@@ -45,6 +45,8 @@ class BaiduSpider(object):
         gpc = "&gpc=stf%3D" + str(strStartTime) + "%2C" + str(strEndTime) + "%7Cstftype%3D2";
         searchURL = url + gpc;
         
+        print('\n\r' * 2);
+        print('*' * 100 );
         print(searchURL);
 
         numPages = BaiduSpider.getPages(BaiduSpider.getData(searchURL, headers));
@@ -101,17 +103,25 @@ class BaiduSpider(object):
             traget.addBaiduSerach(result);
 
 
-    def getData(searchURL, headers = None):
-        data = requests.get(searchURL, headers = headers);
-        #f = codecs.open("data.html", "w", "utf-8");
-        #f.write(data.text);
-        #print(data);
-        if data.status_code == 503:
-            print("[!] An error occurred! Please check whether any verification code");
-            os._exit(0);
-        else:
-            return data.text;
+    def getData(searchURL, headers = None, retryNum = 5):
 
+        try:
+            data = requests.get(searchURL, headers = headers);
+            if data.status_code == 503:
+                print("[!] An error occurred! Please check whether any verification code");
+                os._exit(0);
+            else:
+                return data.text;
+
+        except requests.exceptions.Timeout as e:
+            if retryNum > 0:
+                return getData(searchURL, headers, retryNum - 1);
+            else:
+                e = Exception();
+                e.args[0] = "getData()";
+                e.args[1] = "TimeoutError";
+                raise e;
+        
     
     def getPages(data):
         selector = etree.HTML(data);
