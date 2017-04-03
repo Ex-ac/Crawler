@@ -15,35 +15,32 @@ import math;
 from MySQL import *;
 
 class BaiduWeiboSearch(object):
-    def __init__(self, searchInfo, headers = None, timeStep = None, traget = None):
+    def __init__(self, searchInfo, headers = None, stepTime = datetime.timedelta(seconds = 3600), traget = None):
         super(BaiduWeiboSearch, self).__init__();
 
-        if "keyword" not in searchInfo.keys():
+        if "keyWord" not in searchInfo.keys():
             os._exit();
-        if "starttime" not in searchInfo.keys():
-            searchInfo["starttime"] = datetime.datetime(2010, 1, 1);
-        if "stoptime" not in searchInfo.keys():
-            searchInfo["stoptime"] = datetime.datetime(year = 1990, month = 1, day = 1, hour = 0);
-        if "runningtime" not in searchInfo.keys():
-            searchInfo["runningtime"] = searchInfo["starttime"];
+        if "startTime" not in searchInfo.keys():
+            searchInfo["startTime"] = datetime.datetime(2010, 1, 1);
+        if "stopTime" not in searchInfo.keys():
+            searchInfo["stopTime"] = datetime.datetime(year = 1990, month = 1, day = 1, hour = 0);
+        if "runningTime" not in searchInfo.keys():
+            searchInfo["runningTime"] = searchInfo["startTime"];
 
         self.searchInfo = searchInfo;
         self.traget = traget;
         self.headers = headers;
 
-        if timeStep == None:
-            self.timeStep = datetime.timedelta(seconds = 3600);
-        else:
-            self.timeStep = timeStep;
+        self.stepTime = stepTime;
         
 
-    def searchWthinTheTimePeriod(searchInfo, headers = None, traget = None, step = datetime.timedelta(seconds = 3600)):
+    def searchWthinTheTimePeriod(searchInfo, headers = None, step = datetime.timedelta(seconds = 3600), traget = None):
 
-        strStartTime = int(time.mktime(searchInfo["runningtime"].timetuple()));
-        startTime = searchInfo["runningtime"];
+        strStartTime = int(time.mktime(searchInfo["runningTime"].timetuple()));
+        startTime = searchInfo["runningTime"];
         strEndTime = int(time.mktime((startTime + step).timetuple())) - 2;
 
-        url = u"https://www.baidu.com/s?ie=utf-8&word=%s&rn=20" % searchInfo["keyword"] + "&si=weibo.com&ct=2097152"
+        url = u"https://www.baidu.com/s?ie=utf-8&word=%s&rn=20" % searchInfo["keyWord"] + "&si=weibo.com&ct=2097152"
         pn = 0;
         gpc = "&gpc=stf%3D" + str(strStartTime) + "%2C" + str(strEndTime) + "%7Cstftype%3D2";
         searchURL = url + gpc;
@@ -64,7 +61,7 @@ class BaiduWeiboSearch(object):
 
             for each in pagesResult:
                 result = BaiduWeiboSearch.getResult(each);
-                result["keyword"] = searchInfo["keyword"];
+                result["keyWord"] = searchInfo["keyWord"];
                 BaiduWeiboSearch.saveData(result, traget);
 
 
@@ -73,20 +70,20 @@ class BaiduWeiboSearch(object):
             searchURL += "&pn=" + str(pn);
             time.sleep(2);
             
-        return searchInfo["runningtime"] + step;
+        return searchInfo["runningTime"] + step;
 
     def run(self):
-        if self.searchInfo["stoptime"] == datetime.datetime(year = 1990, month = 1, day = 1, hour = 0):
-            while self.searchInfo["runningtime"] < datetime.datetime.now():
-                self.runningTime = BaiduWeiboSearch.searchWthinTheTimePeriod(self.searchInfo, headers = self.headers, traget = self.traget);
-                searchInfo["runningTime"] = self.runningTime;
-                self.traget.updateSearchInfo(searchInfo);
+        if self.searchInfo["stopTime"] == datetime.datetime(year = 1990, month = 1, day = 1, hour = 0):
+            while self.searchInfo["runningTime"] < datetime.datetime.now():
+                self.searchInfo["runningTime"] = BaiduWeiboSearch.searchWthinTheTimePeriod(searchInfo = self.searchInfo, headers = self.headers, step = self.stepTime, traget = self.traget);
+                if self.traget != None:
+                    self.traget.updateSearchInfo(self.searchInfo);
 
         else:
-            while self.searchInfo["runningtime"] < self.searchInfo["stoptime"]:
-                self.runningTime = BaiduWeiboSearch.searchWthinTheTimePeriod(self.searchInfo, headers = self.headers, traget = self.traget);
-                searchInfo["runningTime"] = self.runningTime;
-                self.traget.updateSearchInfo(searchInfo);
+            while self.searchInfo["runningTime"] < self.searchInfo["stopTime"]:
+                self.searchInfo["runningTime"] = BaiduWeiboSearch.searchWthinTheTimePeriod(searchInfo = self.searchInfo, headers = self.headers, step = self.stepTime, traget = self.traget);
+                if self.traget != None:
+                    self.traget.updateSearchInfo(self.searchInfo);
 
 
 
@@ -217,15 +214,15 @@ if __name__ == "__main__":
 
     startTime = datetime.datetime(2016, 2, 1);
  
-    timeStep = datetime.timedelta(seconds = 3600 * 24);
+    stepTime = datetime.timedelta(seconds = 3600 * 24);
 
 
     searchInfo = {};
-    searchInfo["keyword"] = u"魏则西";
+    searchInfo["keyWord"] = u"google";
 
 
     try:
-        search = BaiduWeiboSearch(searchInfo, headers, timeStep, traget = db);
+        search = BaiduWeiboSearch(searchInfo, headers, stepTime);
         search.run();
     except Exception as e:
         db.addErrorInfo(e);
