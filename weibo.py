@@ -49,7 +49,7 @@ class BaiduSpider(object):
 
         numPages = BaiduSpider.getPages(BaiduSpider.getData(searchURL, headers));
         p = 1;
-        print(str(startTime));
+        print(str(startTime), '~', str((startTime + step)));
         time.sleep(2);
         while pn < numPages:
             
@@ -222,6 +222,7 @@ if __name__ == "__main__":
         search.run();
     except Exception as e:
         db.addErrorInfo(e);
+        raise;
 
     
 
