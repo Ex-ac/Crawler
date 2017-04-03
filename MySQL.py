@@ -6,7 +6,7 @@ class MySqlDB(object):
         self.cursor = None;
         try:
             self.connect = pymysql.connect(host = host, user = user, passwd = passwd, db = db, charset='utf8');
-            self.cursor = self.connect.cursor();
+            self.cursor = self.connect.cursor(pymysql.cursors.DictCursor);
             print("Successful!");
         except pymysql.Error as e:
             print(e.args[0], e.args[1]);
@@ -15,7 +15,7 @@ class MySqlDB(object):
 
     def addSerachInfo(self, data):
         try:
-            sql = u"insert into searchinfo values('%s', '%s', '%s', '%s')" %(data["keyWord"], data["startTime"].strftime("%Y-%m-%d %H:%M:%S"), data["stopTime"].strftime("%Y-%m-%d %H:%M:%S"), data["runningTime"].strftime("%Y-%m-%d %H:%M:%S"));
+            sql = u"insert into searchinfo values('%s', '%s', '%s', '%s')" %(data["keyword"], data["starttime"].strftime("%Y-%m-%d %H:%M:%S"), data["stoptime"].strftime("%Y-%m-%d %H:%M:%S"), data["runningtime"].strftime("%Y-%m-%d %H:%M:%S"));
             self.cursor.execute(sql.encode("utf-8"));
             self.connect.commit();
         except pymysql.Error as e:
@@ -26,7 +26,7 @@ class MySqlDB(object):
 
     def updateSearchInfo(self, data):
         try:
-            sql = u"update searchinfo  set runningtime = '%s' where keyword = '%s' and starttime = '%s' and stoptime = '%s'" %(data["runningTime"].strftime("%Y-%m-%d %H:%M:%S"), data["keyWord"], data["startTime"].strftime("%Y-%m-%d %H:%M:%S"), data["stopTime"].strftime("%Y-%m-%d %H:%M:%S"));
+            sql = u"update searchinfo  set runningtime = '%s' where keyword = '%s' and starttime = '%s' and stoptime = '%s'" %(data["runningtime"].strftime("%Y-%m-%d %H:%M:%S"), data["keyword"], data["starttime"].strftime("%Y-%m-%d %H:%M:%S"), data["stoptime"].strftime("%Y-%m-%d %H:%M:%S"));
             
             #print(sql);
             self.cursor.execute(sql.encode("utf-8"));
@@ -37,7 +37,7 @@ class MySqlDB(object):
 
     def addBaiduSerach(self, data):
         try:
-            sql = u"insert into baidusearch values('%s', '%s', 0)" %(data["keyWord"], data["url"]);
+            sql = u"insert into baidusearch values('%s', '%s', 0)" %(data["keyword"], data["url"]);
             self.cursor.execute(sql.encode("utf-8"));
             #self.connect.commit();
         except pymysql.Error as e:
@@ -63,30 +63,30 @@ class MySqlDB(object):
 if __name__ == "__main__":
     import datetime;
     import time;
-    startTime = datetime.datetime.now();
-    stopTime = datetime.datetime.now();
-    runningTime = datetime.datetime.now();
-    keyWord = u"google";
+    starttime = datetime.datetime.now();
+    stoptime = datetime.datetime.now();
+    runningtime = datetime.datetime.now();
+    keyword = u"google";
 
     
     url = u"grrgergsdgfsdgregs";
 
     searchInfo = {};
-    searchInfo["keyWord"] = keyWord;
-    searchInfo["startTime"] = startTime;
-    searchInfo["stopTime"] = stopTime;
-    searchInfo["runningTime"] = runningTime;
+    searchInfo["keyword"] = keyword;
+    searchInfo["starttime"] = starttime;
+    searchInfo["stoptime"] = stoptime;
+    searchInfo["runningtime"] = runningtime;
 
 
     data = {};
-    data["keyWord"] = keyWord;
+    data["keyword"] = keyword;
     data["url"] = url;
     db = MySqlDB(db = "test");
 
     db.addSerachInfo(searchInfo);
     db.addBaiduSerach(data);
 
-    searchInfo["runningTime"] = datetime.datetime(year = 2017, month = 2, day = 3, hour = 4);
+    searchInfo["runningtime"] = datetime.datetime(year = 2017, month = 2, day = 3, hour = 4);
 
-    db.updataSearchInfo(searchInfo); 
+    db.updateSearchInfo(searchInfo); 
 

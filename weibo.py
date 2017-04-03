@@ -14,33 +14,36 @@ import math;
 
 from MySQL import *;
 
-class BaiduSpider(object):
-    def __init__(self, keyWord, headers = None, startTime = None, timeStep = None, stopTime = None, traget = None):
-        super(BaiduSpider, self).__init__();
-        self.keyWord = keyWord;
+class BaiduWeiboSearch(object):
+    def __init__(self, searchInfo, headers = None, timeStep = None, traget = None):
+        super(BaiduWeiboSearch, self).__init__();
 
-        self.headers = headers;
+        if "keyword" not in searchInfo.keys():
+            os._exit();
+        if "starttime" not in searchInfo.keys():
+            searchInfo["starttime"] = datetime.datetime(2010, 1, 1);
+        if "stoptime" not in searchInfo.keys():
+            searchInfo["stoptime"] = datetime.datetime(year = 1990, month = 1, day = 1, hour = 0);
+        if "runningtime" not in searchInfo.keys():
+            searchInfo["runningtime"] = searchInfo["starttime"];
+
+        self.searchInfo = searchInfo;
         self.traget = traget;
+        self.headers = headers;
 
-        self.timeStep = timeStep;
-
-        if self.timeStep == None:
+        if timeStep == None:
             self.timeStep = datetime.timedelta(seconds = 3600);
-
-        self.startTime = startTime;
-        if self.startTime == None:
-            self.startTime = datetime.datetime(2010, 1, 1);
-        
-        self.stopTime = stopTime;
-        
-        self.runningTime = self.startTime;
+        else:
+            self.timeStep = timeStep;
         
 
-    def searchWthinTheTimePeriod(keyWord, startTime, step = datetime.timedelta(seconds = 3600), headers = None,traget = None):
+    def searchWthinTheTimePeriod(searchInfo, headers = None, traget = None, step = datetime.timedelta(seconds = 3600)):
 
-        strStartTime = int(time.mktime(startTime.timetuple()));
+        strStartTime = int(time.mktime(searchInfo["runningtime"].timetuple()));
+        startTime = searchInfo["runningtime"];
         strEndTime = int(time.mktime((startTime + step).timetuple())) - 2;
-        url = u"https://www.baidu.com/s?ie=utf-8&word=%s&rn=20" % keyWord + "&si=weibo.com&ct=2097152"
+
+        url = u"https://www.baidu.com/s?ie=utf-8&word=%s&rn=20" % searchInfo["keyword"] + "&si=weibo.com&ct=2097152"
         pn = 0;
         gpc = "&gpc=stf%3D" + str(strStartTime) + "%2C" + str(strEndTime) + "%7Cstftype%3D2";
         searchURL = url + gpc;
@@ -49,20 +52,20 @@ class BaiduSpider(object):
         print('*' * 100 );
         print(searchURL);
 
-        numPages = BaiduSpider.getPages(BaiduSpider.getData(searchURL, headers));
+        numPages = BaiduWeiboSearch.getPages(BaiduWeiboSearch.getData(searchURL, headers));
         p = 1;
         print(str(startTime), '~', str((startTime + step)));
         time.sleep(2);
         while pn < numPages:
             
             print("开始下载第%d页，共计%d页" % (p, math.ceil(numPages / 20)));
-            html = BaiduSpider.getData(searchURL, headers);
-            pagesResult = BaiduSpider.getBox(html);
+            html = BaiduWeiboSearch.getData(searchURL, headers);
+            pagesResult = BaiduWeiboSearch.getBox(html);
 
             for each in pagesResult:
-                result = BaiduSpider.getResult(each);
-                result["keyWord"] = keyWord;
-                BaiduSpider.saveData(result, traget);
+                result = BaiduWeiboSearch.getResult(each);
+                result["keyword"] = searchInfo["keyword"];
+                BaiduWeiboSearch.saveData(result, traget);
 
 
             pn += 20;
@@ -70,26 +73,18 @@ class BaiduSpider(object):
             searchURL += "&pn=" + str(pn);
             time.sleep(2);
             
-        return startTime + step;
+        return searchInfo["runningtime"] + step;
 
     def run(self):
-        searchInfo = {};
-        searchInfo["keyWord"] = self.keyWord;
-        searchInfo["startTime"] = self.startTime;
-        if self.stopTime == None:
-            self.stopTime = datetime.datetime(year = 1990, month = 1, day = 1, hour = 0);
-        searchInfo["stopTime"] = self.stopTime;
-        searchInfo["runningTime"] = self.startTime;
-        self.traget.addSerachInfo(searchInfo);
-        if self.stopTime == datetime.datetime(year = 1990, month = 1, day = 1, hour = 0):
-            while self.runningTime < datetime.datetime.now():
-                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.keyWord, self.runningTime, self.timeStep, self.headers, self.traget);
+        if self.searchInfo["stoptime"] == datetime.datetime(year = 1990, month = 1, day = 1, hour = 0):
+            while self.searchInfo["runningtime"] < datetime.datetime.now():
+                self.runningTime = BaiduWeiboSearch.searchWthinTheTimePeriod(self.searchInfo, headers = self.headers, traget = self.traget);
                 searchInfo["runningTime"] = self.runningTime;
                 self.traget.updateSearchInfo(searchInfo);
 
         else:
-            while self.runningTime < self.stopTime:
-                self.runningTime = BaiduSpider.searchWthinTheTimePeriod(self.keyWord, self.runningTime, self.timeStep, self.headers, self.traget);
+            while self.searchInfo["runningtime"] < self.searchInfo["stoptime"]:
+                self.runningTime = BaiduWeiboSearch.searchWthinTheTimePeriod(self.searchInfo, headers = self.headers, traget = self.traget);
                 searchInfo["runningTime"] = self.runningTime;
                 self.traget.updateSearchInfo(searchInfo);
 
@@ -157,7 +152,7 @@ class BaiduSpider(object):
         source = time.split()[0];
         timeStr = time.split()[1:];
         timeStr = "".join(timeStr);
-        date = BaiduSpider.getTime(timeStr);
+        date = BaiduWeiboSearch.getTime(timeStr);
         '''
         result["url"] = url;
         result["title"] = "".join(str);
@@ -225,10 +220,12 @@ if __name__ == "__main__":
     timeStep = datetime.timedelta(seconds = 3600 * 24);
 
 
-    
-    keyWord = u"魏则西";
+    searchInfo = {};
+    searchInfo["keyword"] = u"魏则西";
+
+
     try:
-        search = BaiduSpider(keyWord, headers, startTime, timeStep, traget = db);
+        search = BaiduWeiboSearch(searchInfo, headers, timeStep, traget = db);
         search.run();
     except Exception as e:
         db.addErrorInfo(e);
