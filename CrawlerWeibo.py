@@ -21,25 +21,27 @@ class CrawlerWeibo(MySqlDB):
     
     def startTask(self):
         i = 1;
-        
+        searchTaskList = [];
         while True:
             searchInfoList = self.getUnfinishedTask();
 
 
             for searchInfo in searchInfoList:
 
-                if searchInfo["runningTime"] > datetime.datetime.now():
-                    del searchInfo;
+                if searchInfo["runningTime"] < datetime.datetime.now():
+                    searchTaskList.append(searchInfo);
 
-            if len(searchInfoList) == 0:
+            if len(searchTaskList) == 0:
                 print(u"任务完成！")
                 break;
             
-            for searchInfo in searchInfoList:
-                print(searchInfo);
+            for searchInfo in searchTaskList:
+                
                 task = BaiduWeiboSearch(searchInfo, headers = self.headers, stepTime = self.stepTime, traget = self);
-                #print(u"开始第%d个任务，共有任务%d个" % (i ++, len(searchInfoList)));
+                print(u"NO: %d, Total: %d" % (i , len(searchTaskList)));
+                print(searchInfo);
                 task.run();
+                i += 1;
 
 
      
@@ -58,12 +60,13 @@ if __name__ == "__main__":
     stepTime = datetime.timedelta(seconds = 3600 * 24 * 30);
 
     db = CrawlerWeibo(db = "test", headers = headers, stepTime = stepTime);
-
+    db.startTask();
+'''
     searchInfo = {};
-    searchInfo["keyWord"] = u"google";
+    searchInfo["keyWord"] = u"微软";
+    searchInfo["startTime"] = datetime.datetime(2013, 1, 1);
 
 
 
     db.addWeiboTask(searchInfo);
-
-    db.startTask();
+'''
