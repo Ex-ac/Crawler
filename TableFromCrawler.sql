@@ -15,10 +15,12 @@ create table searchInfo
 
 create table baiduSearch
 (
-	keyWord varchar(25) references searchInfo(keyword) on delete cascade,
+	keyWord varchar(25),
     url nvarchar(1024),
     hasGet boolean default false,
-    primary key (url)
+    primary key (url),
+    index (keyWord),
+    foreign key (keyWord) references searchinfo(keyWord) on delete cascade
 );
 
 create table errorInfo

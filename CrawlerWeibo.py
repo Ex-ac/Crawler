@@ -20,11 +20,14 @@ class CrawlerWeibo(MySqlDB):
     
     
     def startTask(self):
-        i = 1;
-        searchTaskList = [];
+        
+        
         while True:
-            searchInfoList = self.getUnfinishedTask();
 
+            i = 1;
+            searchTaskList = [];
+
+            searchInfoList = self.getUnfinishedTask();
 
             for searchInfo in searchInfoList:
 
@@ -43,6 +46,8 @@ class CrawlerWeibo(MySqlDB):
                 task.run();
                 i += 1;
 
+            time.sleep(60);
+
 
      
 
@@ -57,16 +62,23 @@ if __name__ == "__main__":
     'Accept-Encoding': 'gzip, deflate'
     };
 
-    stepTime = datetime.timedelta(seconds = 3600 * 24 * 30);
+    stepTime = datetime.timedelta(seconds = 3600);
 
     db = CrawlerWeibo(db = "test", headers = headers, stepTime = stepTime);
-    db.startTask();
-'''
+    
     searchInfo = {};
     searchInfo["keyWord"] = u"微软";
-    searchInfo["startTime"] = datetime.datetime(2013, 1, 1);
+    searchInfo["startTime"] = datetime.datetime(2017, 4, 2);
 
 
 
     db.addWeiboTask(searchInfo);
-'''
+    
+    searchInfo["keyWord"] = u"百度";
+
+    db.addWeiboTask(searchInfo);
+
+    searchInfo["keyWord"] = u"google";
+    db.addWeiboTask(searchInfo);
+
+    db.startTask();

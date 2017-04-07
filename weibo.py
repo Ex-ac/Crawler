@@ -52,7 +52,7 @@ class BaiduWeiboSearch(object):
         numPages = BaiduWeiboSearch.getPages(BaiduWeiboSearch.getData(searchURL, headers));
         p = 1;
         print(str(startTime), '~', str((startTime + step)));
-        time.sleep(2);
+        time.sleep(1);
         while pn < numPages:
             
             print("开始下载第%d页，共计%d页" % (p, math.ceil(numPages / 20)));
@@ -68,7 +68,7 @@ class BaiduWeiboSearch(object):
             pn += 20;
             p += 1;
             searchURL += "&pn=" + str(pn);
-            time.sleep(2);
+            time.sleep(1);
             
         return searchInfo["runningTime"] + step;
 
